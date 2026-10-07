@@ -1,14 +1,20 @@
 import 'dotenv/config'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import express from 'express'
 import cors from 'cors'
 import nodemailer from 'nodemailer'
 import { getTransporter, wasTestAccountUsed } from './mailer.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const publicDir = path.join(__dirname, '..', 'public')
 
 const app = express()
 
 const corsOrigin = process.env.CORS_ORIGIN ?? '*'
 app.use(cors({ origin: corsOrigin }))
 app.use(express.json())
+app.use(express.static(publicDir))
 
 const TO_EMAIL = process.env.TO_EMAIL ?? 'cal@srskidsteering.ca'
 
@@ -57,6 +63,12 @@ app.post('/api/contact', async (req, res) => {
     console.error('Failed to send contact email:', err)
     res.status(502).json({ message: 'Could not send message. Please try again or call us directly.' })
   }
+})
+
+// Anything else falls through to the built React app (client-side routed).
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api/')) return next()
+  res.sendFile(path.join(publicDir, 'index.html'))
 })
 
 const port = process.env.PORT ?? 3001
