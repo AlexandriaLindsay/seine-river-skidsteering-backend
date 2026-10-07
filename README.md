@@ -1,59 +1,43 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Small Node/Express service with one job: receive the website's form submissions
+and email them to `cal@srskidsteering.ca`. Not Laravel, not a CMS — just a mailer.
 
-## About Laravel
+## Local development
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+```bash
+npm install
+cp .env.example .env   # leave SMTP_HOST unset for now — see below
+npm run dev
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+With `SMTP_HOST` unset, it sends through a temporary [Ethereal](https://ethereal.email)
+test inbox instead of real email, and logs a preview link for each submission —
+useful for testing the form without needing real credentials yet.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Setting up real email delivery on SiteGround
 
-## Learning Laravel
+1. **Create the mailbox.** In SiteGround Site Tools → Email → Accounts, create
+   `cal@srskidsteering.ca`.
+2. **Get the SMTP settings.** Site Tools → Email → Email Programs → find that
+   account → "Manually Configure" shows the outgoing (SMTP) host, port, and
+   whether it's SSL. Typically `mail.srskidsteering.ca`, port `465`, SSL on.
+3. **Fill in `.env`** (or the Node app's environment variables panel if deploying
+   via SiteGround's Node.js App Manager) with those values — see `.env.example`.
+4. Restart the app. Submissions will now actually arrive at the mailbox instead
+   of going to the Ethereal test inbox.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Deploying on SiteGround
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+SiteGround's Node.js hosting runs this as a standard Node app (Site Tools →
+Devs → Node.js App Manager): point it at this `backend/` folder, set the
+environment variables from `.env.example`, and it starts `npm start`.
 
-## Laravel Sponsors
+Also set `CORS_ORIGIN` to the deployed frontend's URL (e.g.
+`https://srskidsteering.ca`) once that's live, so only your own site can call
+this API.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Frontend wiring
 
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+The frontend reads the backend's URL from `VITE_API_URL` (see
+`frontend/.env.example`). Point it at wherever this backend ends up running.
